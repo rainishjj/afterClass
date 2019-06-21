@@ -1,0 +1,5 @@
+1. 为什么都说netty是高性能的RPC框架？
+	IO多路复用减少了系统开销.异步非阻塞IO 相对于阻塞io提升线程运行效率。避免频繁io阻塞导致线程挂起
+2. 服务端的socket在哪里开始初始化？
+	serverBootStrap的init方法
+3. 服务端的socket在哪里开始accept链接？
