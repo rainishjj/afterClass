@@ -1,7 +1,9 @@
 package com.rainish.main;
 
 import com.rainish.factoryMethod.FactoryA;
+import com.rainish.factoryMethod.FactoryB;
 import com.rainish.factoryMethod.IFactory;
+import com.rainish.simpleFactory.IProduct;
 
 /**
  * @Author jiajiao
@@ -9,7 +11,8 @@ import com.rainish.factoryMethod.IFactory;
  */
 public class FactoryMethodTest {
     public static void main(String[] args) {
-        IFactory factory = new FactoryA();
-        factory.createProduct();
+        IFactory factory = new FactoryB();
+        IProduct product = factory.createProduct();
+        product.producer();
     }
 }

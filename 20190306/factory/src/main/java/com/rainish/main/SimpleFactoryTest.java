@@ -14,7 +14,7 @@ public class SimpleFactoryTest
     public static void main( String[] args )
     {
         SimpleFactory simpleFactory = new SimpleFactory();
-        IProduct product = simpleFactory.createProduct("productB");
+        IProduct product = simpleFactory.createProduct("com.rainish.simpleFactory.ProductB");
         product.producer();
     }
 }
