@@ -10,7 +10,7 @@ import hugerSingleton.HungerSingleton;
 public class LazyRunnable implements Runnable {
     @Override
     public void run() {
-        LazySingleton singleton = LazySingleton.getInstance();
+        LazySingleton singleton = LazySingleton.getInstance2();
         System.out.println(Thread.currentThread().getName()+" ---实体对象：" + singleton);
     }
 }
