@@ -39,7 +39,7 @@ package hugerSingleton;
 public class HungerSingleton {
 
     // 为什么加final关键字? 因为反射可能会改变这个属性的值
-    private static final HungerSingleton instance = new HungerSingleton();
+    private static final HungerSingleton INSTANCE = new HungerSingleton();
 
     // 单例的前提就是构造函数私有化，不然谁都可以new对象
     private HungerSingleton() {
@@ -48,6 +48,6 @@ public class HungerSingleton {
 
     // 为什么是static? 因为要提供对外的获取实例的方法，由于构造函数已经私有化了，所以用static，直接访问对象的方法而无需先创建对象
     public static HungerSingleton getInstance(){
-        return instance;
+        return INSTANCE;
     }
 }
