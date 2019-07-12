@@ -13,7 +13,8 @@ public class RainishMeipo implements RainishInvocationHandler{
     public Object getInstance(Person person){
         this.person = person;
         Class<?> clazz = person.getClass();
-        return RainishProxy.newProxyInstance(new RainishClassLoader(),clazz,this);
+//        return RainishProxy.newProxyInstance(new RainishClassLoader(),clazz,this);
+        return null;
     }
 
     @Override

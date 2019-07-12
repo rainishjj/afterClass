@@ -22,5 +22,6 @@ public class RainishProxy {
     private static String generateSrc(Class<?>[] interfaces) {
         StringBuffer sb = new StringBuffer();
         sb.append("package com.rainish.rainishProxy;" + in);
+        return sb.toString();
     }
 }
