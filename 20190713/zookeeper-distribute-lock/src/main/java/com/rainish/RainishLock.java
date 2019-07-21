@@ -1,5 +1,9 @@
 package com.rainish;
 
+import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.CuratorFrameworkFactory;
+import com.netflix.curator.framework.recipes.locks.InterProcessMutex;
+import com.netflix.curator.retry.RetryNTimes;
 import org.apache.zookeeper.*;
 
 import java.util.Collections;
@@ -14,7 +18,7 @@ import java.util.concurrent.locks.Lock;
  * @Date 2019/7/15 17:37
  */
 public class RainishLock implements Lock {
-    String CONNECT_ADDR = "localhost:2181";
+    String CONNECT_ADDR = "192.168.192.128:2181";
 
     private String path = "/lock";
     String previousPath = null;
@@ -23,16 +27,16 @@ public class RainishLock implements Lock {
     @Override
     public void lock() {
         try {
-            ZooKeeper zooKeeper = new ZooKeeper(CONNECT_ADDR, 4000000, new Watcher() {
+            ZooKeeper zooKeeper = new ZooKeeper(CONNECT_ADDR, 10000000, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
 
                 }
             });
-//            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(CONNECT_ADDR, new RetryNTimes(10,1000));
-//            curatorFramework.start();
-//            InterProcessMutex lock = new InterProcessMutex(curatorFramework, "/locks");
-//            lock.acquire();
+            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(CONNECT_ADDR, new RetryNTimes(10,1000));
+            curatorFramework.start();
+            InterProcessMutex lock = new InterProcessMutex(curatorFramework, "/locks");
+            lock.acquire();
 //        lock.release();
 //            String parent = zooKeeper.create(path, "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             String node = zooKeeper.create(path+"/", "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
@@ -52,12 +56,12 @@ public class RainishLock implements Lock {
             try {
                 zookeeper.exists(previousPath, true);
                 zookeeper.wait();
+//                Thread.currentThread().wait();
             } catch (Exception e) {
-                e.printStackTrace();
+                throw e;
             }
         }
-        System.out.println("child:" + node + "获得锁");
-        Thread.sleep(400000);
+        System.out.println(Thread.currentThread().getName()+"-child:" + node + "获得锁");
     }
 
     private boolean judgeMin(String node, boolean isMin, ZooKeeper zooKeeper) throws KeeperException, InterruptedException {
@@ -75,17 +79,17 @@ public class RainishLock implements Lock {
         });
         // 由于list已经由小到大排好序了，所以只需要跟最小的比就OK了
         isMin = isMin(node, childs.get(0));
-
+        node = node.replace("/lock/","");
         setPreviousPath(node,childs);
 
         return isMin;
     }
 
-    private void setPreviousPath(String node, List<String> childs) {
+    private synchronized void setPreviousPath(String node, List<String> childs) {
         int index = childs.indexOf(node);
-        if(index != -1) {
+        if(index != -1 && index!=0) {
             String previousPath = childs.get(index - 1);
-            this.previousPath = previousPath;
+            this.previousPath = path + "/"+previousPath;
         }
     }
 
