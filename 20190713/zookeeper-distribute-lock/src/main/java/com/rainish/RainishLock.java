@@ -18,7 +18,8 @@ import java.util.concurrent.locks.Lock;
  * @Date 2019/7/15 17:37
  */
 public class RainishLock implements Lock {
-    String CONNECT_ADDR = "192.168.192.128:2181";
+//    String CONNECT_ADDR = "192.168.192.128:2181";
+    String CONNECT_ADDR = "localhost:2181";
 
     private String path = "/lock";
     String previousPath = null;
@@ -27,16 +28,16 @@ public class RainishLock implements Lock {
     @Override
     public void lock() {
         try {
-            ZooKeeper zooKeeper = new ZooKeeper(CONNECT_ADDR, 10000000, new Watcher() {
+            ZooKeeper zooKeeper = new ZooKeeper(CONNECT_ADDR, 20000, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
-
+                    this.notifyAll();
                 }
             });
-            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(CONNECT_ADDR, new RetryNTimes(10,1000));
-            curatorFramework.start();
-            InterProcessMutex lock = new InterProcessMutex(curatorFramework, "/locks");
-            lock.acquire();
+//            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(CONNECT_ADDR, new RetryNTimes(10,1000));
+//            curatorFramework.start();
+//            InterProcessMutex lock = new InterProcessMutex(curatorFramework, "/locks");
+//            lock.acquire();
 //        lock.release();
 //            String parent = zooKeeper.create(path, "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             String node = zooKeeper.create(path+"/", "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
@@ -48,20 +49,33 @@ public class RainishLock implements Lock {
     }
 
     private void getLock(String node, ZooKeeper zookeeper) throws KeeperException, InterruptedException {
-        boolean isMin = false;
+        boolean hasTheLock = false;
+        while (!hasTheLock){ //TODO 为什么这里要循环获得锁？
+            synchronized (this){
+                boolean isMin = false;
+                isMin = judgeMin(node, isMin, zookeeper);
+                // 如果不是最小的，就阻塞
+                if (!isMin) {
+                    try {
+//                        zookeeper.exists(previousPath, true);
+                        zookeeper.exists(previousPath, new Watcher() {
+                            @Override
+                            public void process(WatchedEvent watchedEvent) {
+                                this.notifyAll();
+                            }
+                        });
+                        this.wait();
+                    } catch (Exception e) {
+                        throw e;
+                    }
+                }else {
+                    System.out.println(Thread.currentThread().getName()+"-child:" + node + "获得锁");
+                    hasTheLock = true;
+                }
 
-        isMin = judgeMin(node, isMin, zookeeper);
-        // 如果不是最小的，就阻塞
-        if (!isMin) {
-            try {
-                zookeeper.exists(previousPath, true);
-                zookeeper.wait();
-//                Thread.currentThread().wait();
-            } catch (Exception e) {
-                throw e;
             }
         }
-        System.out.println(Thread.currentThread().getName()+"-child:" + node + "获得锁");
+
     }
 
     private boolean judgeMin(String node, boolean isMin, ZooKeeper zooKeeper) throws KeeperException, InterruptedException {
