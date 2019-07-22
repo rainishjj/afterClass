@@ -1,10 +1,7 @@
 package com.rainish;
 
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.framework.recipes.locks.InterProcessMutex;
-import com.netflix.curator.retry.RetryNTimes;
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +13,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * @Author jiajiao
  * @Date 2019/7/15 17:37
+ * TODO 为什么我的写法结点删除的时候其他阻塞的线程没有获得锁？（watcher没有生效的感觉）
  */
 public class RainishLock implements Lock {
 //    String CONNECT_ADDR = "192.168.192.128:2181";
@@ -49,31 +47,21 @@ public class RainishLock implements Lock {
     }
 
     private void getLock(String node, ZooKeeper zookeeper) throws KeeperException, InterruptedException {
-        boolean hasTheLock = false;
-        while (!hasTheLock){ //TODO 为什么这里要循环获得锁？
             synchronized (this){
                 boolean isMin = false;
                 isMin = judgeMin(node, isMin, zookeeper);
                 // 如果不是最小的，就阻塞
                 if (!isMin) {
                     try {
-//                        zookeeper.exists(previousPath, true);
-                        zookeeper.exists(previousPath, new Watcher() {
-                            @Override
-                            public void process(WatchedEvent watchedEvent) {
-                                this.notifyAll();
-                            }
-                        });
-                        this.wait();
+                        Stat stat = zookeeper.exists(previousPath, true);
+                        if(stat != null) {
+                            this.wait();
+                        }
                     } catch (Exception e) {
                         throw e;
                     }
-                }else {
-                    System.out.println(Thread.currentThread().getName()+"-child:" + node + "获得锁");
-                    hasTheLock = true;
                 }
-
-            }
+                System.out.println(Thread.currentThread().getName()+"-child:" + node + "获得锁");
         }
 
     }

@@ -15,15 +15,15 @@ public class App
         }).start();
 //        System.in.read();
 
-//        new Thread(() -> {
-//            RainishLock rainishLock = new RainishLock();
-//            rainishLock.lock();
-//        }).start();
-//
-//        new Thread(() -> {
-//            RainishLock rainishLock = new RainishLock();
-//            rainishLock.lock();
-//        }).start();
+        new Thread(() -> {
+            RainishLock rainishLock = new RainishLock();
+            rainishLock.lock();
+        }).start();
+
+        new Thread(() -> {
+            RainishLock rainishLock = new RainishLock();
+            rainishLock.lock();
+        }).start();
 
     }
 }
