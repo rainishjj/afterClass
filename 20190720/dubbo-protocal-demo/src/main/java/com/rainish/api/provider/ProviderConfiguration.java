@@ -9,7 +9,7 @@ import org.springframework.context.annotation.PropertySource;
  * @Date 2019/7/22 15:15
  */
 @Configuration
-@EnableDubbo
-@PropertySource("classpath:/dubbo-provider.properties")
+@EnableDubbo(scanBasePackages = "com.rainish.api.provider")
+@PropertySource("classpath:/dubbo.properties")
 public class ProviderConfiguration {
 }
