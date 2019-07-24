@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: dubbo-protocal-demo
+server:
+  tomcat:
+    max-threads: 600
+  port: 9788
+
