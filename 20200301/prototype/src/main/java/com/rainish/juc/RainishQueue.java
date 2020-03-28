@@ -18,7 +18,7 @@ public class RainishQueue {
      * 入队
      */
     public void put(Object object){
-        while (true) {
+        try {
             lock.lock();
             if (list.size() == maxSize) {
                 try {
@@ -28,16 +28,15 @@ public class RainishQueue {
                     e.printStackTrace();
                 }
                 //队列满了，线程需要阻塞
-            } else {
-                list.add(object);
-                System.out.println("添加元素成功，唤醒所有等待的take线程");
-                conditionObjecttake.signal();
-                lock.unlock();
-                return;
             }
-
+            list.add(object);
+            System.out.println("添加元素成功，唤醒所有等待的take线程");
+            conditionObjecttake.signal();
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
         }
-
     }
 
     /**
@@ -45,28 +44,24 @@ public class RainishQueue {
      * @return
      */
     public Object take(){
-        while (true) {
+        try{
             lock.lock();
             if (list.isEmpty()) {
                 //线程需要阻塞
-                try {
-                    System.out.println("队列为empty线程：" + Thread.currentThread().getName() + "等待");
-                    conditionObjecttake.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                if (list.size() - 1 >= 0) {
-                    Object object = list.get(list.size() - 1);  //取最后一个元素
-                    list.remove(object);
-                    System.out.println("获取元素成功，唤醒等待的put线程");
-                    conditionObjectput.signal();
-                    lock.unlock();
-                    return object;
-                }
+                System.out.println("队列为empty线程：" + Thread.currentThread().getName() + "等待");
+                conditionObjecttake.await();
             }
-
+            Object object = list.get(list.size() - 1);  //取最后一个元素
+            list.remove(object);
+            System.out.println("获取元素成功，唤醒等待的put线程");
+            conditionObjectput.signal();
+            return object;
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
         }
+        return null;
     }
     public int getQueueSize(){
         return this.list.size();
