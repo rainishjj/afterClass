@@ -1,0 +1,74 @@
+package com.rainish.juc;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class RainishQueue {
+    private int maxSize = 2;
+    private volatile List list = new ArrayList(maxSize);
+
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition conditionObjectput = lock.newCondition();
+    private Condition conditionObjecttake = lock.newCondition();
+
+    /**
+     * 入队
+     */
+    public void put(Object object){
+        while (true) {
+            lock.lock();
+            if (list.size() == maxSize) {
+                try {
+                    System.out.println("队列满了"+maxSize+"，线程：" + Thread.currentThread().getName() + "等待");
+                    conditionObjectput.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //队列满了，线程需要阻塞
+            } else {
+                list.add(object);
+                System.out.println("添加元素成功，唤醒所有等待的take线程");
+                conditionObjecttake.signal();
+                lock.unlock();
+                return;
+            }
+
+        }
+
+    }
+
+    /**
+     * 出队
+     * @return
+     */
+    public Object take(){
+        while (true) {
+            lock.lock();
+            if (list.isEmpty()) {
+                //线程需要阻塞
+                try {
+                    System.out.println("队列为empty线程：" + Thread.currentThread().getName() + "等待");
+                    conditionObjecttake.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                if (list.size() - 1 >= 0) {
+                    Object object = list.get(list.size() - 1);  //取最后一个元素
+                    list.remove(object);
+                    System.out.println("获取元素成功，唤醒等待的put线程");
+                    conditionObjectput.signal();
+                    lock.unlock();
+                    return object;
+                }
+            }
+
+        }
+    }
+    public int getQueueSize(){
+        return this.list.size();
+    }
+}
