@@ -1,4 +1,4 @@
-package com.rainish.lock;
+package com.rainish.juc.lock;
 
 import com.sun.xml.internal.bind.v2.runtime.SwaRefAdapter;
 
