@@ -18,8 +18,8 @@ public class RainishQueue {
      * 入队
      */
     public void put(Object object){
+        lock.lock();
         try {
-            lock.lock();
             if (list.size() == maxSize) {
                 try {
                     System.out.println("队列满了"+maxSize+"，线程：" + Thread.currentThread().getName() + "等待");
@@ -44,17 +44,19 @@ public class RainishQueue {
      * @return
      */
     public Object take(){
+        lock.lock();
         try{
-            lock.lock();
             if (list.isEmpty()) {
                 //线程需要阻塞
                 System.out.println("队列为empty线程：" + Thread.currentThread().getName() + "等待");
+//                this.wait();
                 conditionObjecttake.await();
             }
             Object object = list.get(list.size() - 1);  //取最后一个元素
             list.remove(object);
             System.out.println("获取元素成功，唤醒等待的put线程");
             conditionObjectput.signal();
+//            this.notifyAll();
             return object;
         }catch (Exception e){
             e.printStackTrace();

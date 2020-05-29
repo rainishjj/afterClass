@@ -23,6 +23,8 @@ public class QueueTest {
                 }
             });
         }
+
+        //加这个睡眠时间，是延长主线程的执行时间，等待其他线程执行结束
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
