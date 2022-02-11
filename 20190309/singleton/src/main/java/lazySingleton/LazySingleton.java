@@ -66,6 +66,10 @@ public class LazySingleton {
         }
     }
 
+    /**
+     * 解决线程安全后，代码不够优雅。- 解决办法-静态内部类
+     * @return
+     */
     public static LazySingleton getInstance3() {
         //检查是否要阻塞
         if (instance == null) {
