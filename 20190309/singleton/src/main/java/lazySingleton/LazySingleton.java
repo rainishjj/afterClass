@@ -4,6 +4,8 @@ package lazySingleton;
  * @Author jiajiao
  * @Date 2019/6/28 11:43
  *
+ * 缺点：线程不安全
+ *
  * 问题1： 懒汉式为什么不是线程安全的
  *
  * 因为getInstance方法不是原子操作，在多线程环境下，有可能有如下情况：
@@ -33,6 +35,7 @@ public class LazySingleton {
      * 锁住的是类对象，因为它是static的
      * https://www.jianshu.com/p/d53bf830fa09
      * @return
+     * 缺点：造成性能瓶颈，解决办法先进门，然后如果不并发了，就不需要阻塞
      */
     public synchronized static LazySingleton getInstance(){
         if (instance == null){
@@ -50,8 +53,9 @@ public class LazySingleton {
 
     /**
      * 问题4： getInstance2跟getInstance3两种写法都能保证线程安全，有什么区别？
+     * 猜想：
      * (先别问老师，自己先想想.可能从jdk底层实现synchronized的方向考虑)
-     * @return
+     * @return 跟方法getInstance是相同效果
      */
     public static LazySingleton getInstance2(){
         synchronized (LazySingleton.class) {
@@ -63,10 +67,13 @@ public class LazySingleton {
     }
 
     public static LazySingleton getInstance3() {
+        //检查是否要阻塞
         if (instance == null) {
             synchronized (LazySingleton.class) {
+                //检查是否创建实例
                 if (instance == null) {
                     instance = new LazySingleton();
+                    //有指令重排序的问题，解决办法是instance属性上加volatile关键字
                 }
             }
         }
